@@ -14,6 +14,8 @@ eureka:
     service-url:
       defaultZone: http://127.0.0.1:6868/eureka
   instance:
+    hostname: localhost
+    instance-id: ${eureka.instance.hostname}:${spring.application.name}:${server.port}
     prefer-ip-address: true
 
 feign:

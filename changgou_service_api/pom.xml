@@ -13,6 +13,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>changgou_service_goods_api</module>
+        <module>changgou_service_system_api</module>
     </modules>
 
     <dependencies>
@@ -21,11 +22,18 @@
             <artifactId>spring-cloud-starter-openfeign</artifactId>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>javax.persistence</groupId>
             <artifactId>persistence-api</artifactId>
             <version>1.0</version>
             <scope>compile</scope>
+        </dependency>
+
+        <!--    Lombok-->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
     </dependencies>
 

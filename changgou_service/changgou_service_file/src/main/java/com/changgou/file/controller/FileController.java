@@ -17,7 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/file")
 public class FileController {
 
-
     @PostMapping("/upload")
     public Result uploadFile(@RequestParam(value = "file") MultipartFile file){
         try {
