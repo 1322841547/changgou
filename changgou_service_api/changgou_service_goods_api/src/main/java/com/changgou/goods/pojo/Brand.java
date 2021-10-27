@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
 
 /**
  * @author ccwu
@@ -18,7 +19,7 @@ import javax.persistence.Table;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tb_brand")   //品牌表
-public class Brand {
+public class Brand implements Serializable {
     @Id
     private Integer id;//品牌id
     private String name;//品牌名称

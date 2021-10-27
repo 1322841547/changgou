@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
 
 /**
  * @author ccwu
@@ -17,7 +18,7 @@ import javax.persistence.Table;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tb_spec")  //（ 规格表）
-public class Spec {
+public class Spec implements Serializable {
     @Id
     private Integer id;  // ID
     private String name;  //名称

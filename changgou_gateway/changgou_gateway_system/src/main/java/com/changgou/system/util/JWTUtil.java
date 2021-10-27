@@ -17,7 +17,7 @@ import java.util.Base64;
 
 public class JWTUtil {
 
-    public static final Long JWT_TTL = (long) (60 * 60 * 1000);  //有效期为 1小时
+    public static final Long JWT_TTL = (long) (10 * 60 * 60 * 1000);  //有效期为 10小时
     public static final String JWT_KEY = "ccwu"; //设置密钥明文\
 
 
