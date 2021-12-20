@@ -24,8 +24,6 @@ public class BrandController {
 
     @Autowired
     private BrandService brandService;
-
-
     /**
      * 1.查询所有商品
      * @return
