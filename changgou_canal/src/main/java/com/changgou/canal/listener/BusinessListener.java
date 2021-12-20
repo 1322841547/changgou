@@ -2,6 +2,7 @@ package com.changgou.canal.listener;
 
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.CanalEntry.*;
 import com.alibaba.otter.canal.protocol.Message;
 import com.changgou.canal.config.RabbitMQConfig;
@@ -11,10 +12,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author ccwu
@@ -28,6 +32,7 @@ import java.util.List;
 @PropertySource("classpath:canal.properties")
 @Component
 
+
 public class BusinessListener implements ApplicationRunner {
 
     @Value("${canal.host}")
@@ -40,7 +45,7 @@ public class BusinessListener implements ApplicationRunner {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-
+    @EventListener
     @Override
     public void run(ApplicationArguments args) throws Exception {
 
@@ -51,9 +56,10 @@ public class BusinessListener implements ApplicationRunner {
         try {
             conn.connect();
             //建立连接
-            //cnn.subscribe(".*\\..*"); //所有库所有表
+            conn.subscribe(".*\\..*"); //所有库所有表
             // 订阅changgou_business库中的tb_ad表
-            conn.subscribe("changgou_business.tb_ad");
+//            conn.subscribe("changgou_business.tb_ad");
+//            conn.subscribe("changgou_goods.tb_spu");
 
             conn.rollback();                      //回滚到未进行ack的地方
             int emptyCount = 0;    //失败请求次数
@@ -101,32 +107,86 @@ public class BusinessListener implements ApplicationRunner {
                 continue;
             }
 
-            RowChange rowChage = null;
+            RowChange rowChange = null;
             try {
-                rowChage = RowChange.parseFrom(entry.getStoreValue());
+                rowChange = RowChange.parseFrom(entry.getStoreValue());
             } catch (Exception e) {
                 throw new RuntimeException("ERROR ## parser of eromanga-event has an error , data:" + entry.toString(),
                         e);
             }
 
-            EventType eventType = rowChage.getEventType();
+            EventType eventType = rowChange.getEventType();
             System.out.println(String.format("================&gt; binlog[%s:%s] , name[%s,%s] , eventType : %s",
                     entry.getHeader().getLogfileName(), entry.getHeader().getLogfileOffset(),
                     entry.getHeader().getSchemaName(), entry.getHeader().getTableName(),
                     eventType));
 
-            for (RowData rowData : rowChage.getRowDatasList()) {
-                if (eventType == EventType.DELETE) {
-                    printColumn(rowData.getBeforeColumnsList());
-                } else if (eventType == EventType.INSERT) {
-                    printColumn(rowData.getAfterColumnsList());
-                } else {
+            // 广告表改变
+            if( "changgou_business".equals(entry.getHeader().getSchemaName()) && "tb_ad".equals(entry.getHeader().getTableName()) ){
+                this.tb_ad(rowChange, eventType);
+
+            // 商品表改变
+            }else if("changgou_goods".equals(entry.getHeader().getSchemaName()) && "tb_spu".equals(entry.getHeader().getTableName())){
+                this.tb_spu(rowChange, eventType);
+            }
+
+        }
+    }
+
+
+    /**
+     * tb_ad更新时发送消息到mq
+     *
+     * @param rowChange
+     * @param eventType
+     */
+    private void tb_ad(RowChange rowChange, EventType eventType){
+        for (RowData rowData : rowChange.getRowDatasList()) {
+            if (eventType == EventType.DELETE) {
+                printColumn(rowData.getBeforeColumnsList());
+            } else if (eventType == EventType.INSERT) {
+                printColumn(rowData.getAfterColumnsList());
+            } else {
 //                    System.out.println("-----------------------------------------&gt; before");
 //                    printColumn(rowData.getBeforeColumnsList());
-                    System.out.println("-----------------------------------------&gt; after");
-                    printColumn(rowData.getAfterColumnsList());
-                }
+                System.out.println("-----------------------------------------&gt; after");
+                printColumn(rowData.getAfterColumnsList());
             }
+        }
+    }
+
+    /**
+     * tb_spu更新时发送消息到mq
+     *
+     * @param rowChange
+     * @param eventType
+     */
+    private void tb_spu(RowChange rowChange, EventType eventType){
+        for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
+
+
+            //获取改变之前的数据并将这部分数据转换为map
+            System.out.println("-----------------------------------------&gt; before");
+            Map<String,String> oldData=new HashMap<>();
+            rowData.getBeforeColumnsList().forEach((c)->oldData.put(c.getName(),c.getValue()));
+
+            //获取改变之后的数据并这部分数据转换为map
+            System.out.println("-----------------------------------------&gt; after");
+            Map<String,String> newData = new HashMap<>();
+            rowData.getAfterColumnsList().forEach((c)->newData.put(c.getName(),c.getValue()));
+
+            //获取最新上架的商品 0->1
+            if ("0".equals(oldData.get("is_marketable")) && "1".equals(newData.get("is_marketable"))){
+                //将商品的spuid发送到mq
+                rabbitTemplate.convertAndSend(RabbitMQConfig.GOODS_UP_EXCHANGE,"",newData.get("id"));
+            }
+
+            //获取最新下架的商品 1->0
+            if ("1".equals(oldData.get("is_marketable")) && "0".equals(newData.get("is_marketable"))){
+                //将商品的spuid发送到mq
+                rabbitTemplate.convertAndSend(RabbitMQConfig.GOODS_DOWN_EXCHANGE,"",newData.get("id"));
+            }
+
         }
     }
 

@@ -15,12 +15,12 @@ public interface SpuService {
      */
     List<Spu> findAll();
 
-//    /**
-//     * 根据ID查询
-//     * @param id
-//     * @return
-//     */
-//    Spu findById(String id);
+    /**
+     * 根据ID查询
+     * @param id
+     * @return
+     */
+    Spu findById(String id);
 
     /**
      * 根据spuID查询商品

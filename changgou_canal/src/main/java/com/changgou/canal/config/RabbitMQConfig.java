@@ -1,7 +1,6 @@
 package com.changgou.canal.config;
 
 import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.listener.QueuesNotAvailableException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,13 +9,14 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
 
     //定义交换机名称
-    public static final String GOODS_UP_EXCHANGE="goods_up_exchange";
-    public static final String GOODS_DOWN_EXCHANGE="goods_down_exchange";
+    public static final String GOODS_UP_EXCHANGE="goods_up_exchange";          //商品上架交换机
+    public static final String GOODS_DOWN_EXCHANGE="goods_down_exchange";      //商品下架交换机
 
     //定义队列名称
-    public static final String AD_UPDATE_QUEUE="ad_update_queue";
-    public static final String SEARCH_ADD_QUEUE="search_add_queue";
-    public static final String SEARCH_DEL_QUEUE="search_del_queue";
+    public static final String AD_UPDATE_QUEUE="ad_update_queue";       // 广告更新队列
+    public static final String SEARCH_ADD_QUEUE="search_add_queue";     // 索引库新增队列
+    public static final String SEARCH_DEL_QUEUE="search_del_queue";     //索引库删除队列
+    public static final String PAGE_CREATE_QUEUE="page_create_queue";   //静态化页面队列
 
     //声明队列
     @Bean
@@ -30,6 +30,10 @@ public class RabbitMQConfig {
     @Bean(SEARCH_DEL_QUEUE)
     public Queue SEARCH_DEL_QUEUE(){
         return new Queue(SEARCH_DEL_QUEUE);
+    }
+    @Bean(PAGE_CREATE_QUEUE)
+    public Queue PAGE_CREATE_QUEUE(){
+        return new Queue(PAGE_CREATE_QUEUE);
     }
 
     //声明交换机
@@ -45,12 +49,17 @@ public class RabbitMQConfig {
 
     //队列与交换机的绑定
     @Bean
-    public Binding GOODS_UP_EXCHANGE_BINDING(@Qualifier(SEARCH_ADD_QUEUE)Queue queue,@Qualifier(GOODS_UP_EXCHANGE)Exchange exchange){
+    public Binding GOODS_UP_EXCHANGE_BINDING(@Qualifier(SEARCH_ADD_QUEUE) Queue queue, @Qualifier(GOODS_UP_EXCHANGE) Exchange exchange){
         return BindingBuilder.bind(queue).to(exchange).with("").noargs();
     }
     @Bean
-    public Binding GOODS_DOWN_EXCHANGE_BINDING(@Qualifier(SEARCH_DEL_QUEUE)Queue queue,@Qualifier(GOODS_DOWN_EXCHANGE)Exchange exchange){
+    public Binding GOODS_DOWN_EXCHANGE_BINDING(@Qualifier(SEARCH_DEL_QUEUE) Queue queue, @Qualifier(GOODS_DOWN_EXCHANGE) Exchange exchange){
         return BindingBuilder.bind(queue).to(exchange).with("").noargs();
     }
 
+    //声明page_create_queue队列,并绑定到商品上架交换机
+    @Bean
+    public Binding PAGE_CREATE_QUEUE_BINDING(@Qualifier(PAGE_CREATE_QUEUE) Queue queue, @Qualifier(GOODS_UP_EXCHANGE) Exchange exchange){
+        return BindingBuilder.bind(queue).to(exchange).with("").noargs();
+    }
 }

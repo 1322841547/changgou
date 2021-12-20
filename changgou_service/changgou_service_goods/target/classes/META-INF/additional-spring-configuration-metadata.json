@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {
+      "name": "hystrix.command.default.execution.timeout.enabled",
+      "type": "java.lang.String",
+      "description": "Description for hystrix.command.default.execution.timeout.enabled."
+    },
+    {
+      "name": "workerId",
+      "type": "java.lang.String",
+      "description": "Description for workerId."
+    }
+  ] }

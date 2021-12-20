@@ -15,8 +15,8 @@ spring:
               - DELETE
       routes:
         - id: goods     #  routes1.goods
-#          uri: http://localhost:9011/   静态路由
-          uri: lb://goods
+#         uri: http://localhost:9011/   静态路由
+          uri: lb://goods       #动态地从eureka注册证中心拿
           predicates:
             - Path=/goods/**
           filters:

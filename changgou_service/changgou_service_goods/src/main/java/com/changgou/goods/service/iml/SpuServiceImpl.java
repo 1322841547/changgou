@@ -31,15 +31,15 @@ public class SpuServiceImpl implements SpuService {
         return spuMapper.selectAll();
     }
 
-//    /**
-//     * 根据ID查询
-//     * @param id
-//     * @return
-//     */
-//    @Override
-//    public Spu findById(String id){
-//        return  spuMapper.selectByPrimaryKey(id);
-//    }
+    /**
+     * 根据ID查询
+     * @param id
+     * @return
+     */
+    @Override
+    public Spu findById(String id){
+        return  spuMapper.selectByPrimaryKey(id);
+    }
 
     /**
      * 根据spuID查询商品

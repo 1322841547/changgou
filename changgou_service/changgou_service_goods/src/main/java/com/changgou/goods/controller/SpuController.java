@@ -45,6 +45,18 @@ public class SpuController {
     }
 
     /**
+     * 给SpuFeign   Feign接口调用
+     * @param id
+     * @return
+     */
+    @GetMapping("/findSpuById/{id}")
+    public Result<Spu> findSpuById(@PathVariable("id") String id){
+        Spu spu = spuService.findById(id);
+        return new Result(true,StatusCode.OK,"查询成功",spu);
+    }
+
+
+    /**
      * 新增数据
      *
      * @param goods
@@ -146,6 +158,7 @@ public class SpuController {
         spuService.pull(id);
         return new Result(true, StatusCode.OK, "商品下架成功");
     }
+
 
     /**
      * 3.上架
