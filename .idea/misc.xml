@@ -4,6 +4,9 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/changgou-user-oauth/pom.xml" />
+        <option value="$PROJECT_DIR$/changgou_service/changgou_service_user/pom.xml" />
+        <option value="$PROJECT_DIR$/changgou_service_api/changgou_service_user_api/pom.xml" />
       </list>
     </option>
   </component>
