@@ -1,0 +1,55 @@
+#springApplication名字和网关配置
+spring:
+  application:
+    name: sysgateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':   #匹配所有请求
+            allowedOrigins: "*"   #允许所有跨域请求
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+      routes:
+        - id: goods     #  routes1.goods
+#         uri: http://localhost:9011/   静态路由
+          uri: lb://goods       #动态地从eureka注册证中心拿
+          predicates:
+            - Path=/goods/**
+          filters:
+            - StripPrefix= 1    #除去Path第一个参数system再predicates断言
+            - name: RequestRateLimiter  #请求数限流 名字不能随便写
+              args:
+                key-resolver: "#{@ipKeyResolver}"       #key-resolver：用于限流的键的解析器的 Bean 对象的名字。它使用 SpEL 表达式根据#{@beanName}从 Spring 容器中获取 Bean 对象。
+                redis-rate-limiter.replenishRate: 1     #限流速率v/s,令牌桶每秒填充平均速率
+                redis-rate-limiter.burstCapacity: 1     #令牌桶容量b,表示限流器允许的最大突发流量。
+
+        - id: system           #  routes2.system
+          uri: lb://system
+          predicates:
+            - Path=/system/**
+          filters:
+            - StripPrefix=1   #除去Path第一个参数system再predicates断言
+
+    # 配置Redis 127.0.0.1可以省略配置
+  redis:
+    host: 192.168.200.128
+    port: 6379
+
+
+#端口号
+server:
+  port: 9110
+
+#Eureka配置
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:6868/eureka
+  instance:
+    hostname: localhost
+    instance-id: ${eureka.instance.hostname}:${spring.application.name}:${server.port}
+    prefer-ip-address: true
